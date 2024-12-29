@@ -49,11 +49,10 @@ def viewAllCus():
     input("\n\tAll Customers Are Here!\n\tPress Enter To Continue...")
 
 # METHOD TO VIEW A CUSTOMER
-def viewCustomer():
+def viewCustomer(uid):
     userFound = 0
     try:
         file = open("bank.dat","rb")
-        uid = input("\n\tEnter A/c Number : ")
         while True:
             data = pickle.load(file)
             if(data==uid):
@@ -67,7 +66,11 @@ def viewCustomer():
         file.close()
         if(userFound == 0):
             print("\n\tUser Does Not Exist!")
-        input("\n\t--- Press Enter To Continue...")
+            input("\n\t--- Press Enter To Continue...")
+            return [uid,False]
+        else:
+            input("\n\t--- Press Enter To Continue...")
+            return [uid,True]
 
 # METHOD TO REMOVE/DELETE A CUSTOMER
 def removeCus():
@@ -96,6 +99,69 @@ def removeCus():
     else:
         input("\n\tCustomer Deleted Successfully!\n\tPress Enter To Continue ...")
 
+# METHOD TO UPDATE A CUSTOMER
+def updateCus(uid):
+    userFound = 0
+    try:
+        file = open("bank.dat","rb")
+        temp = open("temp.dat","ab")
+        while True:
+            data = pickle.load(file)
+            if(data==uid):
+                pickle.dump(data,temp)
+                name = pickle.load(file)
+                print("\n\tAccount No : ",data)
+                print("\tCustomer Name : ",name)
+                pickle.dump(name,temp)
+                mob = input("\n\tEnter Customer New Mobile No : ")
+                pwd = input("\n\tEnter New Password : ")
+                pickle.load(file)
+                pickle.load(file)
+                pickle.dump(mob,temp)
+                pickle.dump(pwd,temp)
+                pickle.dump(pickle.load(file),temp)
+                userFound = 1
+            else:
+                pickle.dump(data,temp)
+    except:
+        file.close()
+        temp.close()
+        if(userFound == 0):
+            print("\n\tCustomer Not Found!")
+        else:
+            print("\n\tCustomer Updated Successfully!")
+        input("\n\t--- Press Enter To Continue...")
+    os.remove("bank.dat")
+    os.rename("temp.dat","bank.dat")
+
+# METHOD TO UPDATE BALANCE OF A CUSTOMER
+def updateBal(uid,bal):
+    userFound = 0
+    try:
+        file = open("bank.dat","rb")
+        temp = open("temp.dat","ab")
+        while True:
+            data = pickle.load(file)
+            if(data==uid):
+                pickle.dump(data,temp)
+                pickle.dump(pickle.load(file),temp)
+                pickle.dump(pickle.load(file),temp)
+                pickle.dump(pickle.load(file),temp)
+                balance = int(pickle.load(file))
+                bal = bal+balance
+                pickle.dump(bal,temp)
+                userFound = 1
+            else:
+                pickle.dump(data,temp)
+    except:
+        file.close()
+        temp.close()
+        if(userFound!=0):
+            print("\n\tBalance Updated Successfully!")
+    os.remove("bank.dat")
+    os.rename("temp.dat","bank.dat")
+    input("\n\t--- Press Enter To Continue...")
+
 # METHOD FOR ADMIN DASHBOARD
 def adminDashboard():
     while True:
@@ -116,10 +182,78 @@ def adminDashboard():
             addCustomer()
         elif(choice==2):
             removeCus()
+        elif(choice==3):
+            uid = input("\n\tEnter Customer A/c No : ")
+            updateCus(uid)
         elif(choice == 4):
             viewAllCus()
         elif(choice == 5):
-            viewCustomer()
+            uid = input("\n\tEnter A/c Number : ")
+            viewCustomer(uid)
+        elif(choice == 6):
+            uid = input("\n\tEnter A/c Number : ")
+            lis = viewCustomer(uid)
+            if(lis[1]):
+                bal = int(input("\n\tEnter Deposit Amount : "))
+                updateBal(lis[0],bal)
+        elif(choice == 7):
+            uid = input("\n\tEnter A/c Number : ")
+            lis = viewCustomer(uid)
+            if(lis[1]):
+                bal = int(input("\n\tEnter Withdrawl Amount : "))
+                updateBal(lis[0],-bal)
+        else:
+            input("\n\tWrong Entered!\n\tTry Again!")
+
+
+# METHOD FOR CUSTOMER LOGIN
+def cusLogin():
+    userFound = 0
+    try:
+        uid = input("\n\tEnter Your A/c Number : ")
+        file = open("bank.dat","rb")
+        while True:
+            data = pickle.load(file)
+            if(data==uid):
+                userFound = 1
+                pwd = input("\n\tEnter Your Password : ")
+                pickle.load(file)
+                pickle.load(file)
+                if(pwd==pickle.load(file)):
+                    file.close()
+                    cusDashboard(uid)
+                    break
+                else:
+                    input("\n\tWrong Password!\n\tTry Again!")
+                    return
+    except:
+        file.close()
+        if(userFound==0):
+            input("\n\tWrong A/c No\n\tTry Again!")
+
+# METHOD FOR CUSTOMER DASHBOARD
+def cusDashboard(uid):
+    viewCustomer(uid)
+    while True:
+        print("\n\t***** Welcome, User *****")
+        print("\n\t1. Deposit")
+        print("\t2. Withdrawl")
+        print("\t3. Update")
+        print("\t4. Logout")
+        ch = int(input("\n\tEnter Your Choice : "))
+        if(ch==4):
+            input("\n\t--- Bye-Bye User!")
+            break
+        elif(ch==1):
+            bal = int(input("\n\tEnter Amount To Deposit : "))
+            updateBal(uid,bal)
+        elif(ch==2):
+            bal = int(input("\n\tEnter Amount To Withdrawl : "))
+            updateBal(uid,-bal)
+        elif(ch==3):
+            updateCus(uid)
+        else:
+            input("\n\tWrong Entered!\n\tTry Again! ")
 
 # DASHBOARD
 while True:
@@ -133,5 +267,7 @@ while True:
         break
     elif(ch==1):
         adminLogin()
+    elif(ch==2):
+        cusLogin()
         
     
